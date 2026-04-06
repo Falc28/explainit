@@ -1416,7 +1416,7 @@ Return only the HTML fragment.`,
 
     /* ---- Call Claude via Anthropic API ---- */
     async function callClaude(systemPrompt, contentParts) {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('https://explainit-proxy.vansh-fnbs.workers.dev/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
