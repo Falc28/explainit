@@ -75,7 +75,7 @@
     }
 
     /* ============================================================
-       LEFT TOOLBAR (desktop)
+       LEFT TOOLBAR (desktop) — hidden on home page
     ============================================================ */
     .toolbar {
       position: fixed;
@@ -92,7 +92,7 @@
       align-items: flex-start;
       padding: 20px 0;
       overflow: hidden;
-      transition: width var(--transition), box-shadow var(--transition), border-color var(--transition);
+      transition: width var(--transition), box-shadow var(--transition), border-color var(--transition), opacity var(--transition);
       z-index: 100;
       box-shadow: var(--shadow);
       will-change: width;
@@ -102,6 +102,10 @@
       border-color: var(--border-hover);
       box-shadow: var(--shadow), 0 0 0 1px var(--border-hover);
     }
+    /* Hide toolbar on home page and mode pages */
+    body.page-home .toolbar,
+    body.page-mode .toolbar { display: none; }
+
     .toolbar-logo {
       display: flex;
       align-items: center;
@@ -205,6 +209,10 @@
       justify-content: space-around;
       padding: 0 20px;
     }
+    /* Hide mobile nav on home page and mode pages */
+    body.page-home .mobile-nav,
+    body.page-mode .mobile-nav { display: none !important; }
+
     .mobile-nav-btn {
       display: flex;
       flex-direction: column;
@@ -235,6 +243,8 @@
       .flashcard-grid { grid-template-columns: 1fr; }
       .option-bar { flex-wrap: wrap; justify-content: center; }
       .result-action-bar { flex-wrap: wrap; gap: 8px; }
+      body.page-home .main,
+      body.page-mode .main { padding-bottom: 0; }
     }
 
     /* ============================================================
@@ -250,6 +260,11 @@
       z-index: 1;
       transition: margin-left var(--transition);
       overflow-y: auto;
+    }
+    /* On home page and mode pages, main takes full width */
+    body.page-home .main,
+    body.page-mode .main {
+      margin-left: 0;
     }
 
     /* ============================================================
@@ -270,6 +285,148 @@
       from { opacity: 0; transform: translateY(10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
+
+    /* ============================================================
+       HOME PAGE (brand-new landing screen)
+    ============================================================ */
+    #page-home {
+      display: none;
+      min-height: 100vh;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      animation: fadeIn 0.4s ease forwards;
+    }
+    #page-home.active { display: flex; }
+
+    .home-inner {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* Decorative glow orb behind logo */
+    .home-glow {
+      position: absolute;
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: glowPulse 4s ease-in-out infinite;
+    }
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+      50%       { opacity: 1;   transform: translate(-50%, -50%) scale(1.08); }
+    }
+
+    .home-logo-mark {
+      position: relative;
+      z-index: 1;
+      width: 64px; height: 64px;
+      background: var(--accent);
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 28px;
+      box-shadow: 0 8px 40px var(--accent-glow);
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-6px); }
+    }
+    .home-logo-mark svg { width: 32px; height: 32px; }
+
+    .home-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(52px, 8vw, 96px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      background: linear-gradient(135deg, var(--text-primary) 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .home-tagline {
+      font-size: clamp(14px, 2vw, 17px);
+      color: var(--text-secondary);
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      margin-bottom: 48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .home-features {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+    .home-feature-pill {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .home-feature-pill svg { width: 13px; height: 13px; color: var(--accent); flex-shrink: 0; }
+
+    .home-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 15px 36px;
+      background: var(--accent);
+      color: #1a1208;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 700;
+      border: none; border-radius: 50px;
+      cursor: pointer; letter-spacing: 0.02em;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 6px 30px var(--accent-glow);
+      position: relative;
+      z-index: 1;
+    }
+    .home-cta:hover { transform: translateY(-3px); box-shadow: 0 12px 40px var(--accent-glow); }
+    .home-cta:active { transform: translateY(0); }
+    .home-cta svg { width: 18px; height: 18px; }
+
+    .home-settings-btn {
+      position: fixed;
+      top: 20px; right: 20px;
+      width: 40px; height: 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: color var(--transition), border-color var(--transition), background var(--transition);
+      z-index: 200;
+    }
+    .home-settings-btn:hover { color: var(--text-primary); border-color: var(--border-hover); background: var(--surface-2); }
+    .home-settings-btn svg { width: 17px; height: 17px; }
 
     /* ============================================================
        PREP — IDLE STATE
@@ -885,12 +1042,199 @@
       transition: color 0.2s;
     }
     .saved-banner-clear:hover { color: var(--error); }
+
+    /* ============================================================
+       MODE PAGE (full-screen sub-page for each mode)
+    ============================================================ */
+    #page-mode {
+      display: none;
+      min-height: 100vh;
+      width: 100%;
+      flex-direction: column;
+      position: relative;
+      z-index: 1;
+      animation: fadeIn 0.35s ease forwards;
+    }
+    #page-mode.active { display: flex; }
+
+    /* Top bar with back arrow + mode title */
+    .mode-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      width: 100%;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 28px;
+      height: 60px;
+      flex-shrink: 0;
+    }
+    .mode-back-btn {
+      display: flex; align-items: center; gap: 7px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 500;
+      padding: 7px 14px 7px 10px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: color var(--transition), border-color var(--transition), background var(--transition);
+      flex-shrink: 0;
+    }
+    .mode-back-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--border-hover);
+      background: var(--surface-2);
+    }
+    .mode-back-btn svg { width: 15px; height: 15px; }
+
+    .mode-topbar-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px; font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    .mode-topbar-badge {
+      display: flex; align-items: center; gap: 5px;
+      padding: 3px 10px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(232,160,69,0.25);
+      border-radius: 50px;
+      font-size: 11px; font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .mode-topbar-badge svg { width: 11px; height: 11px; }
+
+    /* Mode page content area */
+    .mode-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 24px 60px;
+      overflow-y: auto;
+    }
+    .mode-inner {
+      width: 100%;
+      max-width: 760px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Mode page upload + prompt (same elements, reused) */
+    .mode-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    /* Run button inside mode page (full-width) */
+    .mode-run-wrap {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      align-items: center;
+    }
+    .mode-run-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 11px 28px;
+      background: var(--accent); color: #1a1208;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 700;
+      border: none; border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+      box-shadow: 0 4px 20px var(--accent-glow);
+      letter-spacing: 0.02em;
+    }
+    .mode-run-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--accent-glow); }
+    .mode-run-btn:active { transform: translateY(0); }
+    .mode-run-btn svg { width: 16px; height: 16px; }
+    .mode-run-btn.loading { opacity: 0.7; pointer-events: none; }
+
+    .mode-reset-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px; font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: color var(--transition), border-color var(--transition), background var(--transition);
+    }
+    .mode-reset-btn:hover {
+      color: var(--error);
+      border-color: var(--error);
+      background: rgba(224,92,106,0.06);
+    }
+    .mode-reset-btn svg { width: 12px; height: 12px; }
+
+    @media (max-width: 640px) {
+      .mode-topbar { padding: 0 16px; }
+      .mode-content { padding: 24px 16px 40px; }
+      .flashcard-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
-<body>
+<body class="page-home">
 
   <!-- ============================================================
-       LEFT TOOLBAR (desktop)
+       HOME PAGE (brand new landing screen)
+  ============================================================ -->
+  <div id="page-home" class="active">
+    <div class="home-glow"></div>
+    <button class="home-settings-btn" onclick="goToSettings()" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+    <div class="home-inner">
+      <div class="home-logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1a1208" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+      </div>
+      <div class="home-brand">ExplainIt.</div>
+      <p class="home-tagline">Upload. Choose. Understand.</p>
+      <div class="home-features">
+        <div class="home-feature-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          Flash Cards
+        </div>
+        <div class="home-feature-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Summarize
+        </div>
+        <div class="home-feature-pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Simplify
+        </div>
+      </div>
+      <button class="home-cta" onclick="goToPrep()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/>
+          <polyline points="12 5 19 12 12 19"/>
+        </svg>
+        Start Prepping
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       LEFT TOOLBAR (desktop) — visible on prep/settings pages
   ============================================================ -->
   <aside class="toolbar" id="toolbar">
     <div class="toolbar-logo">
@@ -948,9 +1292,9 @@
   </nav>
 
   <!-- ============================================================
-       MAIN CONTENT
+       MAIN CONTENT (prep + settings tabs)
   ============================================================ -->
-  <main class="main">
+  <main class="main" id="main-area">
 
     <!-- ==================== PREP TAB ==================== -->
     <div class="tab-panel active" id="tab-prep">
@@ -968,7 +1312,7 @@
         </button>
       </div>
 
-      <!-- Workspace -->
+      <!-- Workspace (mode picker only — upload/prompt/run happen on mode pages) -->
       <div class="prep-workspace" id="prep-workspace">
 
         <!-- Saved result restore banner -->
@@ -978,16 +1322,22 @@
           <button class="saved-banner-clear" onclick="clearSavedResult()">Dismiss</button>
         </div>
 
-        <!-- Option bar -->
+        <!-- Heading -->
+        <div style="text-align:center;margin-bottom:4px;">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.02em;color:var(--text-primary);">What would you like to do?</div>
+          <div style="font-size:13px;color:var(--text-secondary);margin-top:6px;font-weight:300;">Choose a mode to get started</div>
+        </div>
+
+        <!-- Option bar — clicking a mode now navigates to mode page -->
         <div class="option-bar" id="option-bar">
-          <button class="opt-btn" id="opt-flashcards" onclick="selectMode('flashcards')">
+          <button class="opt-btn" id="opt-flashcards" onclick="goToMode('flashcards')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <rect x="2" y="5" width="20" height="14" rx="2"/>
               <line x1="2" y1="10" x2="22" y2="10"/>
             </svg>
             Flash Cards
           </button>
-          <button class="opt-btn" id="opt-summarize" onclick="selectMode('summarize')">
+          <button class="opt-btn" id="opt-summarize" onclick="goToMode('summarize')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
               <line x1="8" y1="18" x2="21" y2="18"/>
@@ -996,7 +1346,7 @@
             </svg>
             Summarize
           </button>
-          <button class="opt-btn" id="opt-simplify" onclick="selectMode('simplify')">
+          <button class="opt-btn" id="opt-simplify" onclick="goToMode('simplify')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/>
               <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
@@ -1006,86 +1356,8 @@
           </button>
         </div>
 
-        <!-- File upload -->
-        <div class="upload-zone" id="upload-zone"
-             ondragover="handleDragOver(event)"
-             ondragleave="handleDragLeave(event)"
-             ondrop="handleDrop(event)">
-          <input type="file" class="upload-input" id="file-input" multiple
-                 accept=".pdf,.txt,.md,.docx,.png,.jpg,.jpeg"
-                 onchange="handleFileSelect(event)" />
-          <div class="upload-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-            </svg>
-          </div>
-          <div class="upload-label"><span>Click to attach</span> or drag & drop files</div>
-          <div class="upload-sublabel">PDF, TXT, MD, DOCX, PNG, JPG — up to 5 files</div>
-        </div>
-
-        <!-- File chips -->
-        <div class="file-chips" id="file-chips"></div>
-
-        <!-- Prompt + run -->
-        <div class="prompt-wrap">
-          <textarea class="prompt-box" id="prompt-box"
-            placeholder="Add context, extra instructions, or a specific focus… (optional)"
-            rows="3"
-            oninput="updateWordCount()"
-            onkeydown="handlePromptKey(event)"></textarea>
-          <button class="run-btn" id="run-btn" onclick="runQuery()" title="Run (Ctrl+Enter)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"/>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-          </button>
-        </div>
-
-        <!-- Word/char count + keyboard hint -->
-        <div class="prompt-meta">
-          <span class="prompt-count" id="prompt-count">0 words</span>
-          <span class="prompt-hint">Ctrl+Enter to run</span>
-        </div>
-
-        <!-- Reset button -->
-        <button class="reset-btn" id="reset-btn" onclick="resetWorkspace()" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="1 4 1 10 7 10"/>
-            <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
-          </svg>
-          Clear & Reset
-        </button>
-
-        <!-- Shimmer skeleton (loading state) -->
-        <div class="skeleton-wrap" id="skeleton-wrap">
-          <!-- Content filled by JS based on mode -->
-        </div>
-
-        <!-- Result outer wrapper -->
-        <div class="result-outer" id="result-outer">
-          <div class="result-action-bar">
-            <span class="result-label" id="result-label">Result</span>
-            <div class="result-actions">
-              <button class="action-btn" id="copy-btn" onclick="copyResult()" title="Copy to clipboard">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                </svg>
-                Copy
-              </button>
-              <button class="action-btn" onclick="exportResult()" title="Download as .txt">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Export
-              </button>
-            </div>
-          </div>
-          <!-- Actual result content -->
-          <div class="result-area" id="result-area"></div>
-        </div>
+        <!-- Small hint text -->
+        <div style="font-size:11.5px;color:var(--text-muted);text-align:center;">Select a mode above to open its workspace</div>
 
       </div>
     </div>
@@ -1139,6 +1411,122 @@
 
   </main>
 
+  <!-- ============================================================
+       MODE PAGE — full-screen sub-page for each mode
+  ============================================================ -->
+  <div id="page-mode">
+    <!-- Sticky top bar -->
+    <div class="mode-topbar">
+      <button class="mode-back-btn" onclick="goBackFromMode()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Back
+      </button>
+      <span class="mode-topbar-title" id="mode-topbar-title">Flash Cards</span>
+      <span class="mode-topbar-badge" id="mode-topbar-badge">
+        <!-- icon injected by JS -->
+      </span>
+    </div>
+
+    <!-- Scrollable content -->
+    <div class="mode-content">
+      <div class="mode-inner">
+
+        <!-- Upload zone -->
+        <div>
+          <div class="mode-section-label">Attach Files</div>
+          <div class="upload-zone" id="mode-upload-zone"
+               ondragover="handleDragOver2(event)"
+               ondragleave="handleDragLeave2(event)"
+               ondrop="handleDrop2(event)">
+            <input type="file" class="upload-input" id="mode-file-input" multiple
+                   accept=".pdf,.txt,.md,.docx,.png,.jpg,.jpeg"
+                   onchange="handleFileSelect2(event)" />
+            <div class="upload-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+              </svg>
+            </div>
+            <div class="upload-label"><span>Click to attach</span> or drag & drop files</div>
+            <div class="upload-sublabel">PDF, TXT, MD, DOCX, PNG, JPG — up to 5 files</div>
+          </div>
+          <div class="file-chips" id="mode-file-chips" style="margin-top:10px;"></div>
+        </div>
+
+        <!-- Prompt -->
+        <div>
+          <div class="mode-section-label">Additional Instructions <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></div>
+          <div class="prompt-wrap">
+            <textarea class="prompt-box" id="mode-prompt-box"
+              placeholder="Add context, extra instructions, or a specific focus…"
+              rows="3"
+              oninput="updateWordCount2()"
+              onkeydown="handlePromptKey2(event)"></textarea>
+            <button class="run-btn" id="mode-run-btn-inline" onclick="runModeQuery()" title="Run (Ctrl+Enter)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+          <div class="prompt-meta">
+            <span class="prompt-count" id="mode-prompt-count">0 words</span>
+            <span class="prompt-hint">Ctrl+Enter to run</span>
+          </div>
+        </div>
+
+        <!-- Run + reset row -->
+        <div class="mode-run-wrap">
+          <button class="mode-reset-btn" id="mode-reset-btn" onclick="resetModeWorkspace()" style="display:none">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1 4 1 10 7 10"/>
+              <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+            </svg>
+            Clear & Reset
+          </button>
+          <button class="mode-run-btn" id="mode-run-btn" onclick="runModeQuery()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            Generate
+          </button>
+        </div>
+
+        <!-- Shimmer skeleton -->
+        <div class="skeleton-wrap" id="mode-skeleton-wrap"></div>
+
+        <!-- Result -->
+        <div class="result-outer" id="mode-result-outer">
+          <div class="result-action-bar">
+            <span class="result-label" id="mode-result-label">Result</span>
+            <div class="result-actions">
+              <button class="action-btn" id="mode-copy-btn" onclick="copyModeResult()" title="Copy to clipboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                Copy
+              </button>
+              <button class="action-btn" onclick="exportModeResult()" title="Download as .txt">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Export
+              </button>
+            </div>
+          </div>
+          <div class="result-area" id="mode-result-area"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <div class="toast-container" id="toast-container"></div>
 
   <!-- ============================================================
@@ -1155,19 +1543,20 @@
     ============================================================ */
     const state = {
       mode: null,
-      files: [],
+      files: [],           // files for the mode page
       isLoading: false,
       workspaceOpen: false,
-      flashCards: [],        // parsed flash card objects
-      activeCardIndex: 0,    // keyboard nav
+      flashCards: [],
+      activeCardIndex: 0,
       reviewedCards: new Set(),
       streamingEnabled: true,
-      resultText: '',        // plain text of last result (for copy/export)
+      resultText: '',
       osThemeEnabled: false,
+      currentPage: 'home', // 'home' | 'prep' | 'mode'
     };
 
     /* ============================================================
-       INIT — runs once on page load
+       INIT
     ============================================================ */
     window.addEventListener('DOMContentLoaded', () => {
       loadSettings();
@@ -1176,12 +1565,10 @@
     });
 
     function loadSettings() {
-      // Restore streaming preference
       const stream = localStorage.getItem('explainit_stream');
       state.streamingEnabled = stream !== 'false';
       document.getElementById('stream-toggle').checked = state.streamingEnabled;
 
-      // Restore OS theme preference
       const osTheme = localStorage.getItem('explainit_os_theme') === 'true';
       state.osThemeEnabled = osTheme;
       document.getElementById('os-theme-toggle').checked = osTheme;
@@ -1195,19 +1582,15 @@
     /* ---- OS theme detection ---- */
     function initOsTheme() {
       if (state.osThemeEnabled) applyOsTheme();
-
-      // Listen for OS theme changes
       window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
         if (state.osThemeEnabled) applyOsTheme();
       });
     }
-
     function applyOsTheme() {
       const isLight = window.matchMedia('(prefers-color-scheme: light)').matches;
       document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
       document.getElementById('theme-toggle').checked = isLight;
     }
-
     function toggleOsTheme() {
       state.osThemeEnabled = document.getElementById('os-theme-toggle').checked;
       localStorage.setItem('explainit_os_theme', state.osThemeEnabled);
@@ -1219,27 +1602,125 @@
       const saved = localStorage.getItem('explainit_last_result');
       const savedMode = localStorage.getItem('explainit_last_mode');
       if (saved && savedMode) {
-        const banner = document.getElementById('saved-banner');
         const modeLabels = { flashcards: 'Flash Cards', summarize: 'Summary', simplify: 'Simplified notes' };
         document.getElementById('saved-banner-text').textContent =
           `Saved from last session: ${modeLabels[savedMode] || savedMode}. Open Prep to restore.`;
-        banner.classList.add('visible');
+        document.getElementById('saved-banner').classList.add('visible');
       }
     }
-
     function clearSavedResult() {
       localStorage.removeItem('explainit_last_result');
       localStorage.removeItem('explainit_last_mode');
       document.getElementById('saved-banner').classList.remove('visible');
     }
-
     function saveResult(mode, text) {
       localStorage.setItem('explainit_last_result', text);
       localStorage.setItem('explainit_last_mode', mode);
     }
 
     /* ============================================================
-       TAB SWITCHING
+       PAGE NAVIGATION
+    ============================================================ */
+
+    /* Home → Prep */
+    function goToPrep() {
+      document.getElementById('page-home').classList.remove('active');
+      document.getElementById('main-area').style.display = 'flex';
+      document.body.classList.remove('page-home', 'page-mode');
+      document.body.classList.add('page-prep');
+      state.currentPage = 'prep';
+
+      // open workspace immediately (skip idle state since home was the landing)
+      openPrepWorkspace();
+    }
+
+    /* Prep → Mode sub-page */
+    function goToMode(mode) {
+      state.mode = mode;
+      state.currentPage = 'mode';
+
+      // Update topbar title & badge
+      const modeConfig = {
+        flashcards: {
+          label: 'Flash Cards',
+          badgeText: 'Flash Cards',
+          icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>`
+        },
+        summarize: {
+          label: 'Summarize',
+          badgeText: 'Summarize',
+          icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`
+        },
+        simplify: {
+          label: 'Simplify',
+          badgeText: 'Simplify',
+          icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`
+        }
+      };
+      const cfg = modeConfig[mode];
+      document.getElementById('mode-topbar-title').textContent = cfg.label;
+      document.getElementById('mode-topbar-badge').innerHTML = cfg.icon + ' ' + cfg.badgeText;
+      document.getElementById('mode-result-label').textContent = cfg.label;
+
+      // Reset mode page state
+      state.files = [];
+      state.resultText = '';
+      state.flashCards = [];
+      state.reviewedCards = new Set();
+      state.activeCardIndex = 0;
+      document.getElementById('mode-file-chips').innerHTML = '';
+      document.getElementById('mode-prompt-box').value = '';
+      updateWordCount2();
+      hideModeResult();
+      hideSkeleton2();
+      document.getElementById('mode-reset-btn').style.display = 'none';
+
+      // Restore saved result for this mode if exists
+      const saved = localStorage.getItem('explainit_last_result');
+      const savedMode = localStorage.getItem('explainit_last_mode');
+      if (saved && savedMode === mode) {
+        state.resultText = saved;
+        renderModeResult(mode, saved);
+        document.getElementById('mode-reset-btn').style.display = 'flex';
+      }
+
+      // Switch page visibility
+      document.getElementById('main-area').style.display = 'none';
+      document.getElementById('page-mode').classList.add('active');
+      document.body.classList.remove('page-home', 'page-prep');
+      document.body.classList.add('page-mode');
+
+      // Scroll to top
+      document.getElementById('page-mode').scrollTop = 0;
+    }
+
+    /* Mode sub-page → back to Prep */
+    function goBackFromMode() {
+      document.getElementById('page-mode').classList.remove('active');
+      document.getElementById('main-area').style.display = 'flex';
+      document.body.classList.remove('page-mode', 'page-home');
+      document.body.classList.add('page-prep');
+      state.currentPage = 'prep';
+      // Make sure prep tab is visible
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-prep').classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('nav-prep').classList.add('active');
+    }
+
+    /* Home settings gear → settings tab */
+    function goToSettings() {
+      document.getElementById('page-home').classList.remove('active');
+      document.getElementById('main-area').style.display = 'flex';
+      document.body.classList.remove('page-home', 'page-mode');
+      document.body.classList.add('page-prep');
+      state.currentPage = 'prep';
+      state.workspaceOpen = true;
+      switchTab('settings');
+    }
+
+    /* ============================================================
+       TAB SWITCHING (within main area)
     ============================================================ */
     function switchTab(tabId) {
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -1249,14 +1730,13 @@
       const navBtn = document.getElementById('nav-' + tabId);
       if (navBtn) navBtn.classList.add('active');
 
-      // Mobile nav
       document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
       const mobBtn = document.getElementById('mob-nav-' + tabId);
       if (mobBtn) mobBtn.classList.add('active');
     }
 
     /* ============================================================
-       PREP WORKSPACE — open
+       PREP WORKSPACE — open (used when navigating from home CTA)
     ============================================================ */
     function openPrepWorkspace() {
       if (state.workspaceOpen) return;
@@ -1269,69 +1749,42 @@
         idle.style.display = 'none';
         const ws = document.getElementById('prep-workspace');
         ws.classList.add('visible');
-
-        // Check for and restore saved result
-        const saved = localStorage.getItem('explainit_last_result');
-        const savedMode = localStorage.getItem('explainit_last_mode');
-        if (saved && savedMode) {
-          selectMode(savedMode);
-          state.resultText = saved;
-          renderResult(savedMode, saved);
-          document.getElementById('reset-btn').style.display = 'flex';
-          document.getElementById('saved-banner').classList.remove('visible');
-        }
       }, 350);
     }
 
     /* ============================================================
-       MODE SELECTION
+       MODE PAGE — FILE HANDLING
     ============================================================ */
-    function selectMode(mode) {
-      state.mode = mode;
-      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
-      document.getElementById('opt-' + mode).classList.add('selected');
-
-      // Clear results
-      hideResult();
-      hideSkeleton();
-
-      const labels = { flashcards: 'Flash Cards', summarize: 'Summary', simplify: 'Simplified' };
-      document.getElementById('result-label').textContent = labels[mode] || 'Result';
-    }
-
-    /* ============================================================
-       FILE HANDLING
-    ============================================================ */
-    function handleFileSelect(event) {
-      addFiles(Array.from(event.target.files));
+    function handleFileSelect2(event) {
+      addFiles2(Array.from(event.target.files));
       event.target.value = '';
     }
-    function handleDragOver(event) {
+    function handleDragOver2(event) {
       event.preventDefault();
-      document.getElementById('upload-zone').classList.add('drag-over');
+      document.getElementById('mode-upload-zone').classList.add('drag-over');
     }
-    function handleDragLeave() {
-      document.getElementById('upload-zone').classList.remove('drag-over');
+    function handleDragLeave2() {
+      document.getElementById('mode-upload-zone').classList.remove('drag-over');
     }
-    function handleDrop(event) {
+    function handleDrop2(event) {
       event.preventDefault();
-      document.getElementById('upload-zone').classList.remove('drag-over');
-      addFiles(Array.from(event.dataTransfer.files));
+      document.getElementById('mode-upload-zone').classList.remove('drag-over');
+      addFiles2(Array.from(event.dataTransfer.files));
     }
-    function addFiles(incoming) {
+    function addFiles2(incoming) {
       const remaining = 5 - state.files.length;
       if (remaining <= 0) { showToast('Maximum 5 files allowed.', 'error'); return; }
       const toAdd = incoming.slice(0, remaining);
       if (incoming.length > remaining) showToast(`Only ${remaining} more file(s) can be added.`, 'error');
       state.files.push(...toAdd);
-      renderFileChips();
+      renderFileChips2();
     }
-    function removeFile(index) {
+    function removeFile2(index) {
       state.files.splice(index, 1);
-      renderFileChips();
+      renderFileChips2();
     }
-    function renderFileChips() {
-      const container = document.getElementById('file-chips');
+    function renderFileChips2() {
+      const container = document.getElementById('mode-file-chips');
       container.innerHTML = '';
       state.files.forEach((file, i) => {
         const chip = document.createElement('div');
@@ -1342,7 +1795,7 @@
             <polyline points="13 2 13 9 20 9"/>
           </svg>
           ${escapeHtml(truncate(file.name, 26))}
-          <button class="file-chip-remove" onclick="removeFile(${i})" title="Remove">
+          <button class="file-chip-remove" onclick="removeFile2(${i})" title="Remove">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
@@ -1352,99 +1805,58 @@
     }
 
     /* ============================================================
-       WORD COUNT
+       MODE PAGE — WORD COUNT & KEYBOARD
     ============================================================ */
-    function updateWordCount() {
-      const text = document.getElementById('prompt-box').value.trim();
+    function updateWordCount2() {
+      const text = document.getElementById('mode-prompt-box').value.trim();
       const words = text ? text.split(/\s+/).length : 0;
       const chars = text.length;
-      const el = document.getElementById('prompt-count');
+      const el = document.getElementById('mode-prompt-count');
       el.textContent = `${words} word${words !== 1 ? 's' : ''} · ${chars} chars`;
       el.classList.toggle('warn', chars > 800);
     }
-
-    /* ============================================================
-       KEYBOARD SHORTCUTS
-    ============================================================ */
-    function handlePromptKey(event) {
+    function handlePromptKey2(event) {
       if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
         event.preventDefault();
-        runQuery();
-      }
-    }
-
-    // Global keyboard handler for flash card navigation
-    document.addEventListener('keydown', (e) => {
-      if (state.mode !== 'flashcards' || state.flashCards.length === 0) return;
-      if (document.activeElement.tagName === 'TEXTAREA') return;
-
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        navigateCard(1);
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-        e.preventDefault();
-        navigateCard(-1);
-      } else if (e.key === ' ') {
-        e.preventDefault();
-        flipCard(state.activeCardIndex);
-      }
-    });
-
-    function navigateCard(dir) {
-      const prev = state.activeCardIndex;
-      state.activeCardIndex = Math.max(0, Math.min(state.flashCards.length - 1, state.activeCardIndex + dir));
-      if (prev !== state.activeCardIndex) {
-        document.getElementById('card-' + prev)?.classList.remove('active-card');
-        const next = document.getElementById('card-' + state.activeCardIndex);
-        if (next) {
-          next.classList.add('active-card');
-          next.focus();
-          next.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+        runModeQuery();
       }
     }
 
     /* ============================================================
-       RESET WORKSPACE
+       MODE PAGE — RESET
     ============================================================ */
-    function resetWorkspace() {
-      state.mode = null;
+    function resetModeWorkspace() {
       state.files = [];
       state.flashCards = [];
       state.reviewedCards = new Set();
       state.activeCardIndex = 0;
       state.resultText = '';
-
-      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
-      document.getElementById('file-chips').innerHTML = '';
-      document.getElementById('prompt-box').value = '';
-      updateWordCount();
-      hideResult();
-      hideSkeleton();
-      document.getElementById('reset-btn').style.display = 'none';
+      document.getElementById('mode-file-chips').innerHTML = '';
+      document.getElementById('mode-prompt-box').value = '';
+      updateWordCount2();
+      hideModeResult();
+      hideSkeleton2();
+      document.getElementById('mode-reset-btn').style.display = 'none';
       clearSavedResult();
       showToast('Workspace cleared.', 'success');
     }
 
     /* ============================================================
-       RUN QUERY
+       MODE PAGE — RUN QUERY
     ============================================================ */
-    async function runQuery() {
+    async function runModeQuery() {
       if (state.isLoading) return;
+      if (!state.mode) { showToast('No mode selected.', 'error'); return; }
 
-      if (!state.mode) {
-        showToast('Please select Flash Cards, Summarize, or Simplify first.', 'error');
-        return;
-      }
-      const promptText = document.getElementById('prompt-box').value.trim();
+      const promptText = document.getElementById('mode-prompt-box').value.trim();
       if (state.files.length === 0 && !promptText) {
         showToast('Add a file or type something in the prompt box.', 'error');
         return;
       }
 
-      setLoading(true);
-      hideResult();
-      showSkeleton(state.mode);
+      setModeLoading(true);
+      hideModeResult();
+      showSkeleton2(state.mode);
 
       try {
         const fileContents = await readAllFiles(state.files);
@@ -1452,24 +1864,23 @@
 
         let rawText;
         if (state.streamingEnabled && state.mode !== 'flashcards') {
-          // Stream for summarize/simplify (shows text word by word)
-          rawText = await streamClaude(systemPrompt, userMessage);
+          rawText = await streamClaude2(systemPrompt, userMessage);
         } else {
           rawText = await callClaude(systemPrompt, userMessage);
         }
 
-        hideSkeleton();
+        hideSkeleton2();
         state.resultText = rawText;
-        renderResult(state.mode, rawText);
+        renderModeResult(state.mode, rawText);
         saveResult(state.mode, rawText);
-        document.getElementById('reset-btn').style.display = 'flex';
+        document.getElementById('mode-reset-btn').style.display = 'flex';
 
       } catch (err) {
         console.error('ExplainIt error:', err);
-        hideSkeleton();
-        showResultHtml(`<p class="result-error">⚠ ${escapeHtml(friendlyError(err.message))}</p>`);
+        hideSkeleton2();
+        showModeResultHtml(`<p class="result-error">⚠ ${escapeHtml(friendlyError(err.message))}</p>`);
       } finally {
-        setLoading(false);
+        setModeLoading(false);
       }
     }
 
@@ -1582,15 +1993,15 @@ Return only the HTML fragment.`,
       return data.content.filter(b => b.type === 'text').map(b => b.text).join('');
     }
 
-    /* ---- Streaming API call (SSE) ---- */
-    async function streamClaude(systemPrompt, contentParts) {
+    /* ---- Streaming API call (SSE) — for mode page ---- */
+    async function streamClaude2(systemPrompt, contentParts) {
       const response = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 1500,
-          stream: true,          // tells the Worker to enable SSE
+          stream: true,
           system: systemPrompt,
           messages: [{ role: 'user', content: contentParts }],
         }),
@@ -1601,22 +2012,18 @@ Return only the HTML fragment.`,
         throw new Error(err.error?.message || `API error ${response.status}`);
       }
 
-      // Show result area immediately so we can stream into it
-      hideSkeleton();
-      showResultHtml('<span class="stream-cursor"></span>');
+      hideSkeleton2();
+      showModeResultHtml('<span class="stream-cursor"></span>');
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let accumulated = '';
 
-      // Parse the SSE stream from Anthropic
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n');
-
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
           const jsonStr = line.slice(6).trim();
@@ -1625,8 +2032,7 @@ Return only the HTML fragment.`,
             const evt = JSON.parse(jsonStr);
             if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
               accumulated += evt.delta.text;
-              // Update the result area with streamed content + cursor
-              const area = document.getElementById('result-area');
+              const area = document.getElementById('mode-result-area');
               area.innerHTML = accumulated + '<span class="stream-cursor"></span>';
               area.scrollTop = area.scrollHeight;
             }
@@ -1634,34 +2040,33 @@ Return only the HTML fragment.`,
         }
       }
 
-      // Remove cursor when done
-      const area = document.getElementById('result-area');
+      const area = document.getElementById('mode-result-area');
       area.innerHTML = accumulated;
       return accumulated;
     }
 
     /* ============================================================
-       RESULT RENDERING
+       MODE PAGE — RESULT RENDERING
     ============================================================ */
-    function renderResult(mode, rawText) {
+    function renderModeResult(mode, rawText) {
       if (mode === 'flashcards') {
-        renderFlashCards(rawText);
+        renderFlashCards2(rawText);
       } else {
-        showResultHtml(rawText);
+        showModeResultHtml(rawText);
       }
     }
 
-    function renderFlashCards(jsonText) {
+    function renderFlashCards2(jsonText) {
       let cards;
       try {
         const clean = jsonText.replace(/```json|```/g, '').trim();
         cards = JSON.parse(clean);
       } catch {
-        showResultHtml('<p class="result-error">⚠ Could not parse flash cards. Try again.</p>');
+        showModeResultHtml('<p class="result-error">⚠ Could not parse flash cards. Try again.</p>');
         return;
       }
       if (!Array.isArray(cards) || cards.length === 0) {
-        showResultHtml('<p class="result-error">⚠ No flash cards were generated.</p>');
+        showModeResultHtml('<p class="result-error">⚠ No flash cards were generated.</p>');
         return;
       }
 
@@ -1701,7 +2106,7 @@ Return only the HTML fragment.`,
           <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> navigate &nbsp;·&nbsp; <kbd class="kbd">Space</kbd> flip
         </div>`;
 
-      showResultHtml(html);
+      showModeResultHtml(html);
     }
 
     function flipCard(index) {
@@ -1709,14 +2114,9 @@ Return only the HTML fragment.`,
       if (!card) return;
       card.classList.toggle('flipped');
       state.activeCardIndex = index;
-
-      // Track reviewed cards
-      if (card.classList.contains('flipped')) {
-        state.reviewedCards.add(index);
-      }
+      if (card.classList.contains('flipped')) state.reviewedCards.add(index);
       updateFlashCardProgress();
     }
-
     function flipAllCards() {
       state.flashCards.forEach((_, i) => {
         document.getElementById('card-' + i)?.classList.add('flipped');
@@ -1724,7 +2124,6 @@ Return only the HTML fragment.`,
       });
       updateFlashCardProgress();
     }
-
     function resetAllCards() {
       state.flashCards.forEach((_, i) => {
         document.getElementById('card-' + i)?.classList.remove('flipped');
@@ -1732,38 +2131,32 @@ Return only the HTML fragment.`,
       state.reviewedCards = new Set();
       updateFlashCardProgress();
     }
-
     function updateFlashCardProgress() {
       const total = state.flashCards.length;
       const reviewed = state.reviewedCards.size;
       const pct = total ? (reviewed / total) * 100 : 0;
-
       const textEl = document.getElementById('fc-progress-text');
       const fillEl = document.getElementById('fc-progress-fill');
       if (textEl) textEl.textContent = `${reviewed} / ${total} reviewed`;
       if (fillEl) fillEl.style.width = pct + '%';
-
       if (reviewed === total && total > 0) showToast('All cards reviewed! 🎉', 'success');
     }
 
-    /* ---- Show/hide result area ---- */
-    function showResultHtml(html) {
-      const area = document.getElementById('result-area');
+    function showModeResultHtml(html) {
+      const area = document.getElementById('mode-result-area');
       area.innerHTML = html;
-      document.getElementById('result-outer').classList.add('visible');
+      document.getElementById('mode-result-outer').classList.add('visible');
     }
-
-    function hideResult() {
-      document.getElementById('result-outer').classList.remove('visible');
-      document.getElementById('result-area').innerHTML = '';
+    function hideModeResult() {
+      document.getElementById('mode-result-outer').classList.remove('visible');
+      document.getElementById('mode-result-area').innerHTML = '';
     }
 
     /* ============================================================
-       SKELETON LOADING STATE
+       MODE PAGE — SKELETON LOADING STATE
     ============================================================ */
-    function showSkeleton(mode) {
-      const wrap = document.getElementById('skeleton-wrap');
-
+    function showSkeleton2(mode) {
+      const wrap = document.getElementById('mode-skeleton-wrap');
       if (mode === 'flashcards') {
         wrap.innerHTML = `
           <div class="skeleton-line heading"></div>
@@ -1785,23 +2178,21 @@ Return only the HTML fragment.`,
       }
       wrap.classList.add('visible');
     }
-
-    function hideSkeleton() {
-      const wrap = document.getElementById('skeleton-wrap');
+    function hideSkeleton2() {
+      const wrap = document.getElementById('mode-skeleton-wrap');
       wrap.classList.remove('visible');
       wrap.innerHTML = '';
     }
 
     /* ============================================================
-       COPY & EXPORT
+       MODE PAGE — COPY & EXPORT
     ============================================================ */
-    async function copyResult() {
-      const area = document.getElementById('result-area');
-      // Get plain text (strip HTML tags)
+    async function copyModeResult() {
+      const area = document.getElementById('mode-result-area');
       const text = area.innerText || area.textContent;
       try {
         await navigator.clipboard.writeText(text);
-        const btn = document.getElementById('copy-btn');
+        const btn = document.getElementById('mode-copy-btn');
         btn.classList.add('success-flash');
         btn.innerHTML = `
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1819,37 +2210,60 @@ Return only the HTML fragment.`,
         showToast('Copy failed — try selecting the text manually.', 'error');
       }
     }
-
-    function exportResult() {
-      const area = document.getElementById('result-area');
+    function exportModeResult() {
+      const area = document.getElementById('mode-result-area');
       const text = area.innerText || area.textContent;
       const modeLabels = { flashcards: 'flashcards', summarize: 'summary', simplify: 'simplified' };
       const filename = `explainit-${modeLabels[state.mode] || 'result'}-${Date.now()}.txt`;
-
       const blob = new Blob([text], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.click();
+      a.href = url; a.download = filename; a.click();
       URL.revokeObjectURL(url);
       showToast('Exported as ' + filename, 'success');
     }
 
     /* ============================================================
-       LOADING STATE
+       MODE PAGE — LOADING STATE
     ============================================================ */
-    function setLoading(on) {
+    function setModeLoading(on) {
       state.isLoading = on;
-      const btn = document.getElementById('run-btn');
+      const btnMain = document.getElementById('mode-run-btn');
+      const btnInline = document.getElementById('mode-run-btn-inline');
       if (on) {
-        btn.classList.add('loading');
-        btn.innerHTML = '<div class="spinner"></div>';
+        btnMain.classList.add('loading');
+        btnMain.innerHTML = '<div class="spinner"></div> Generating…';
+        btnInline.classList.add('loading');
+        btnInline.innerHTML = '<div class="spinner"></div>';
       } else {
-        btn.classList.remove('loading');
-        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-        </svg>`;
+        btnMain.classList.remove('loading');
+        btnMain.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Generate`;
+        btnInline.classList.remove('loading');
+        btnInline.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`;
+      }
+    }
+
+    /* ============================================================
+       GLOBAL KEYBOARD — flash card navigation
+    ============================================================ */
+    document.addEventListener('keydown', (e) => {
+      if (state.mode !== 'flashcards' || state.flashCards.length === 0) return;
+      if (document.activeElement.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault(); navigateCard(1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault(); navigateCard(-1);
+      } else if (e.key === ' ') {
+        e.preventDefault(); flipCard(state.activeCardIndex);
+      }
+    });
+    function navigateCard(dir) {
+      const prev = state.activeCardIndex;
+      state.activeCardIndex = Math.max(0, Math.min(state.flashCards.length - 1, state.activeCardIndex + dir));
+      if (prev !== state.activeCardIndex) {
+        document.getElementById('card-' + prev)?.classList.remove('active-card');
+        const next = document.getElementById('card-' + state.activeCardIndex);
+        if (next) { next.classList.add('active-card'); next.focus(); next.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
       }
     }
 
@@ -1857,7 +2271,6 @@ Return only the HTML fragment.`,
        SETTINGS — THEME TOGGLE
     ============================================================ */
     function toggleTheme() {
-      // Disable OS sync if manually toggling
       if (state.osThemeEnabled) {
         state.osThemeEnabled = false;
         document.getElementById('os-theme-toggle').checked = false;
@@ -1889,6 +2302,15 @@ Return only the HTML fragment.`,
     function truncate(str, max) {
       return str.length > max ? str.slice(0, max - 1) + '…' : str;
     }
+
+    /* ============================================================
+       LEGACY — kept for backwards compat (prep-workspace had these)
+    ============================================================ */
+    // These are no longer wired to any UI but kept so nothing breaks if referenced
+    function selectMode(mode) { goToMode(mode); }
+    function updateWordCount() {}
+    function handlePromptKey() {}
+    function resetWorkspace() { resetModeWorkspace(); }
   </script>
 </body>
 </html>
