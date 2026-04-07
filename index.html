@@ -1865,6 +1865,19 @@
         let rawText;
         if (state.streamingEnabled && state.mode !== 'flashcards') {
           rawText = await streamClaude2(systemPrompt, userMessage);
+        } else if (state.mode === 'flashcards') {
+          // Retry up to 3 times if the JSON can't be parsed cleanly
+          let attempts = 0;
+          const maxAttempts = 3;
+          while (attempts < maxAttempts) {
+            attempts++;
+            rawText = await callClaude(systemPrompt, userMessage);
+            const parsed = extractJsonArray(rawText);
+            if (Array.isArray(parsed) && parsed.length > 0) break;
+            if (attempts < maxAttempts) {
+              showToast('Retrying for clean output... (attempt ' + (attempts + 1) + ' of ' + maxAttempts + ')', '');
+            }
+          }
         } else {
           rawText = await callClaude(systemPrompt, userMessage);
         }
@@ -1938,23 +1951,26 @@
     /* ---- Build prompts ---- */
     function buildMessages(mode, fileContents, promptText) {
       const systemPrompts = {
-        flashcards: `You are an expert study assistant. Extract the most important concepts, facts, and ideas from the provided content and create smart flash cards. Ignore filler content, headers, and irrelevant text.
-Return ONLY valid JSON — an array of objects with keys "question" and "answer".
-Example: [{"question":"What is photosynthesis?","answer":"The process plants use to convert sunlight into energy."}]
-Aim for 6–12 cards. No extra text outside the JSON.`,
+        flashcards: `You are an expert study assistant that outputs ONLY raw JSON — no markdown, no code fences, no explanation, no preamble, no trailing text whatsoever.
+Your entire response must be a single valid JSON array and nothing else.
+Each element must be an object with exactly two string keys: "question" and "answer".
+Example of the ONLY acceptable output format:
+[{"question":"What is photosynthesis?","answer":"The process plants use to convert sunlight into energy."},{"question":"What is osmosis?","answer":"The movement of water across a semi-permeable membrane from low to high solute concentration."}]
+Extract the most important concepts from the provided content. Aim for 6–12 cards.
+DO NOT wrap the JSON in backticks. DO NOT write any text before or after the JSON array. Start your response with [ and end with ].`,
 
         summarize: `You are an expert at creating clear, well-structured study notes.
 Summarise the provided content using bullet points and sub-bullet points.
 Format the output as clean HTML using <h3> for main topics, <ul> and <li> for bullet points.
 Preserve key numbers, dates, and technical terms. Be concise but complete.
-Return only the HTML fragment — no <!DOCTYPE> or <html> wrapper.`,
+Return only the HTML fragment — no <!DOCTYPE>, no <html> wrapper, no markdown code fences.`,
 
-        simplify: `You are a master teacher who explains complex topics to a 5-year-old.
-Start from the very basics — assume the reader knows nothing.
+        simplify: `You are a master teacher who explains complex topics simply and clearly.
+Start from the very basics — assume the reader knows nothing about the topic.
 Use simple words, short sentences, and helpful analogies.
 Be warm, encouraging, and thorough enough that the reader fully understands.
 Format output as clean HTML: <h3> for section headings, <p> for paragraphs.
-Return only the HTML fragment.`,
+Return only the HTML fragment — no <!DOCTYPE>, no <html> wrapper, no markdown code fences.`,
       };
 
       const contentParts = [];
@@ -2056,19 +2072,53 @@ Return only the HTML fragment.`,
       }
     }
 
+    function extractJsonArray(raw) {
+      // 1. Strip all markdown code fences (```json ... ``` or ``` ... ```)
+      let text = raw.replace(/```[\w]*\n?/g, '').replace(/```/g, '').trim();
+
+      // 2. Try parsing the cleaned text directly
+      try { return JSON.parse(text); } catch (_) {}
+
+      // 3. Find the first '[' and last ']' and try parsing just that slice
+      const start = text.indexOf('[');
+      const end   = text.lastIndexOf(']');
+      if (start !== -1 && end !== -1 && end > start) {
+        try { return JSON.parse(text.slice(start, end + 1)); } catch (_) {}
+      }
+
+      // 4. Try to find a JSON array anywhere with a regex
+      const match = text.match(/\[[\s\S]*\]/);
+      if (match) {
+        try { return JSON.parse(match[0]); } catch (_) {}
+      }
+
+      // 5. Last resort — strip any control characters and try again
+      const sanitised = text.replace(/[\x00-\x1F\x7F]/g, ' ');
+      const start2 = sanitised.indexOf('[');
+      const end2   = sanitised.lastIndexOf(']');
+      if (start2 !== -1 && end2 !== -1 && end2 > start2) {
+        try { return JSON.parse(sanitised.slice(start2, end2 + 1)); } catch (_) {}
+      }
+
+      return null;
+    }
+
     function renderFlashCards2(jsonText) {
       let cards;
       try {
-        const clean = jsonText.replace(/```json|```/g, '').trim();
-        cards = JSON.parse(clean);
-      } catch {
-        showModeResultHtml('<p class="result-error">⚠ Could not parse flash cards. Try again.</p>');
-        return;
+        cards = extractJsonArray(jsonText);
+      } catch (_) {
+        cards = null;
       }
       if (!Array.isArray(cards) || cards.length === 0) {
-        showModeResultHtml('<p class="result-error">⚠ No flash cards were generated.</p>');
+        showModeResultHtml('<p class="result-error">⚠ Could not parse flash cards — the AI returned an unexpected format. Please try again.</p>');
         return;
       }
+      // Normalise cards: accept "question"/"answer" or "front"/"back" or "q"/"a"
+      cards = cards.map(c => ({
+        question: c.question || c.front || c.q || c.term || Object.values(c)[0] || '',
+        answer:   c.answer   || c.back  || c.a || c.definition || Object.values(c)[1] || '',
+      })).filter(c => c.question || c.answer);
 
       state.flashCards = cards;
       state.reviewedCards = new Set();
