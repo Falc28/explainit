@@ -1863,20 +1863,41 @@
         const { systemPrompt, userMessage } = buildMessages(state.mode, fileContents, promptText);
 
         let rawText;
-        if (state.streamingEnabled && state.mode !== 'flashcards') {
-          rawText = await streamClaude2(systemPrompt, userMessage);
-        } else if (state.mode === 'flashcards') {
-          // Retry up to 3 times if the JSON can't be parsed cleanly
+
+        if (state.mode === 'flashcards') {
+          // Flashcards: always non-streaming, retry up to 3 times for valid JSON
           let attempts = 0;
           const maxAttempts = 3;
+          rawText = '';
           while (attempts < maxAttempts) {
             attempts++;
-            rawText = await callClaude(systemPrompt, userMessage);
-            const parsed = extractJsonArray(rawText);
-            if (Array.isArray(parsed) && parsed.length > 0) break;
-            if (attempts < maxAttempts) {
-              showToast('Retrying for clean output... (attempt ' + (attempts + 1) + ' of ' + maxAttempts + ')', '');
+            try {
+              rawText = await callClaude(systemPrompt, userMessage);
+              const parsed = extractJsonArray(rawText);
+              if (Array.isArray(parsed) && parsed.length > 0) break;
+              if (attempts < maxAttempts) {
+                showToast('Retrying for clean output… (attempt ' + (attempts + 1) + ' of ' + maxAttempts + ')', '');
+              }
+            } catch (fetchErr) {
+              if (attempts >= maxAttempts) throw fetchErr;
+              showToast('Retrying… (attempt ' + (attempts + 1) + ' of ' + maxAttempts + ')', '');
             }
+          }
+        } else if (state.streamingEnabled) {
+          // Summarize / Simplify with streaming — with non-streaming fallback
+          try {
+            rawText = await streamClaude2(systemPrompt, userMessage);
+            // If streaming returned empty (worker may not support SSE), fall back
+            if (!rawText || !rawText.trim()) {
+              hideModeResult();
+              showSkeleton2(state.mode);
+              rawText = await callClaude(systemPrompt, userMessage);
+            }
+          } catch (streamErr) {
+            // Streaming failed — silently fall back to non-streaming
+            hideModeResult();
+            showSkeleton2(state.mode);
+            rawText = await callClaude(systemPrompt, userMessage);
           }
         } else {
           rawText = await callClaude(systemPrompt, userMessage);
@@ -1899,6 +1920,7 @@
 
     /* ---- Friendly error messages ---- */
     function friendlyError(msg) {
+      if (!msg) return 'An unexpected error occurred. Please try again.';
       if (msg.includes('401'))  return 'Invalid API key — check your Cloudflare Worker setup.';
       if (msg.includes('429'))  return 'Rate limit hit — wait a moment and try again.';
       if (msg.includes('500'))  return 'Anthropic server error — try again in a few seconds.';
@@ -2006,7 +2028,16 @@ Return only the HTML fragment — no <!DOCTYPE>, no <html> wrapper, no markdown 
         throw new Error(err.error?.message || `API error ${response.status}`);
       }
       const data = await response.json();
-      return data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+      // Handle both direct API response and proxied response formats
+      if (data.content && Array.isArray(data.content)) {
+        return data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+      }
+      // Some workers wrap the response differently
+      if (typeof data === 'string') return data;
+      if (data.text) return data.text;
+      if (data.completion) return data.completion;
+      // Last resort: stringify and return
+      return JSON.stringify(data);
     }
 
     /* ---- Streaming API call (SSE) — for mode page ---- */
@@ -2028,18 +2059,41 @@ Return only the HTML fragment — no <!DOCTYPE>, no <html> wrapper, no markdown 
         throw new Error(err.error?.message || `API error ${response.status}`);
       }
 
+      // Check content-type to determine if the worker actually streams SSE
+      const contentType = response.headers.get('content-type') || '';
+      const isSSE = contentType.includes('text/event-stream');
+
+      if (!isSSE) {
+        // Worker returned a regular JSON response despite stream:true request
+        // Parse it as a normal response
+        const data = await response.json().catch(() => null);
+        if (data && data.content && Array.isArray(data.content)) {
+          const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+          if (text && text.trim()) {
+            hideSkeleton2();
+            showModeResultHtml(text);
+            return text;
+          }
+        }
+        // Return empty to trigger fallback in runModeQuery
+        return '';
+      }
+
       hideSkeleton2();
       showModeResultHtml('<span class="stream-cursor"></span>');
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let accumulated = '';
+      let buffer = '';
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        // Keep the last (potentially incomplete) line in the buffer
+        buffer = lines.pop() || '';
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
           const jsonStr = line.slice(6).trim();
@@ -2049,15 +2103,32 @@ Return only the HTML fragment — no <!DOCTYPE>, no <html> wrapper, no markdown 
             if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
               accumulated += evt.delta.text;
               const area = document.getElementById('mode-result-area');
-              area.innerHTML = accumulated + '<span class="stream-cursor"></span>';
-              area.scrollTop = area.scrollHeight;
+              if (area) {
+                area.innerHTML = accumulated + '<span class="stream-cursor"></span>';
+                area.scrollTop = area.scrollHeight;
+              }
             }
           } catch { /* skip malformed SSE lines */ }
         }
       }
 
+      // Process any remaining buffer content
+      if (buffer && buffer.startsWith('data: ')) {
+        const jsonStr = buffer.slice(6).trim();
+        if (jsonStr && jsonStr !== '[DONE]') {
+          try {
+            const evt = JSON.parse(jsonStr);
+            if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+              accumulated += evt.delta.text;
+            }
+          } catch { /* ignore */ }
+        }
+      }
+
+      // Remove streaming cursor from final output
       const area = document.getElementById('mode-result-area');
-      area.innerHTML = accumulated;
+      if (area) area.innerHTML = accumulated;
+
       return accumulated;
     }
 
@@ -2068,7 +2139,11 @@ Return only the HTML fragment — no <!DOCTYPE>, no <html> wrapper, no markdown 
       if (mode === 'flashcards') {
         renderFlashCards2(rawText);
       } else {
-        showModeResultHtml(rawText);
+        // For summarize and simplify: the API returns HTML, render it directly
+        // Strip any accidental markdown code fences the model may have added
+        let html = rawText.trim();
+        html = html.replace(/^```[\w]*\n?/gm, '').replace(/```$/gm, '').trim();
+        showModeResultHtml(html);
       }
     }
 
@@ -2193,9 +2268,10 @@ Return only the HTML fragment — no <!DOCTYPE>, no <html> wrapper, no markdown 
     }
 
     function showModeResultHtml(html) {
+      const outer = document.getElementById('mode-result-outer');
       const area = document.getElementById('mode-result-area');
       area.innerHTML = html;
-      document.getElementById('mode-result-outer').classList.add('visible');
+      outer.classList.add('visible');
     }
     function hideModeResult() {
       document.getElementById('mode-result-outer').classList.remove('visible');
